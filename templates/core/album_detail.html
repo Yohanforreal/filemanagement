@@ -1,0 +1,166 @@
+{% extends 'base_generic.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Grid View */
+    .album-grid {
+        display: flex; /* Use flexbox for layout */
+        flex-wrap: wrap; /* Allow items to wrap to the next line */
+    }
+
+    .album-grid .file-container {
+        flex: 0 0 200px; /* Fixed width for containers */
+        margin: 10px; /* Spacing between items */
+    }
+
+    /* Carousel View */
+    .album-carousel {
+        display: flex;
+        overflow-x: scroll;
+        white-space: nowrap;
+    }
+
+    .album-carousel .file-container {
+        flex: 0 0 auto;
+        margin: 10px;
+    }
+
+    /* Slideshow View */
+    .album-slideshow {
+        position: relative;
+        max-width: 220px; /* Add max-width to contain slideshow */
+        margin: auto; /* Center align */
+    }
+    
+    .album-slideshow .file-container {
+        display: none; /* Hide all slides initially */
+        width: 100%; /* Ensure the container takes full width */
+        margin-bottom: 20px; /* Space below each file container */
+    }
+    
+    .album-slideshow .file-container:first-child {
+        display: block; /* Show the first slide */
+    }
+    
+    /* Controls styles */
+    .controls {
+        display: none; /* Hide by default */
+        margin-top: 10px; /* Space above controls */
+        text-align: center; /* Center align the buttons */
+    }
+    
+    /* Ensure the controls are shown when in slideshow mode */
+    .album-slideshow.active .controls {
+        display: block; /* Show controls when in slideshow mode */
+    }
+    
+    /* Styles for text file previews */
+    .text-preview {
+        max-height: 200px; /* Limit height for uniformity */
+        overflow-y: auto; /* Allow scrolling for long text */
+        background-color: #f0f0f0; /* Light background for contrast */
+        padding: 10px; /* Padding for better readability */
+        border: 1px solid #ddd; /* Optional: border for visual separation */
+        border-radius: 5px; /* Optional: rounded corners */
+    }
+</style>
+
+<h2>{{ album.album_name }}</h2>
+
+<label for="display-mode">Choose Display Mode:</label>
+<select id="display-mode" aria-label="Display Mode Selector">
+    <option value="grid" {% if album.display_pattern == 'grid' %}selected{% endif %}>Grid View</option>
+    <option value="carousel" {% if album.display_pattern == 'carousel' %}selected{% endif %}>Carousel</option>
+    <option value="slideshow" {% if album.display_pattern == 'slideshow' %}selected{% endif %}>Slideshow</option>
+</select>
+
+    <h3>Existing Album Files</h3>
+    <br>
+<div id="album-display" class="album-{{ album.display_pattern }}">
+
+    {% for media in media_files %}
+        <div class="file-container">
+            {% if media.file.is_image %}
+                <img src="{{ media.file.file_location.url }}" alt="{{ media.file.file_name }}" style="max-width: 200px; max-height: 200px;">
+            {% elif media.file.is_text_file %}
+                <h4>Text File Preview:</h4>
+                <pre class="text-preview">{% if media.file.content %}{{ media.file.content }}{% else %}No content available{% endif %}</pre>
+            {% else %}
+                <p>{{ media.file.file_name }} (File type not previewable)</p>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p>No files found for this album.</p>
+    {% endfor %}
+    
+    <div class="controls" id="controls">
+        <button id="prevBtn">Previous</button>
+        <button id="nextBtn">Next</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const displayModeSelect = document.getElementById('display-mode');
+        const albumDisplay = document.getElementById('album-display');
+        const controls = document.getElementById('controls');
+        let currentSlide = 0; // Initialize current slide index
+        let slides = []; // Declare slides variable
+
+        // Function to update display class based on selected mode
+        function updateDisplayMode(mode) {
+            console.log(`Updating display mode to: ${mode}`);  // Log the selected mode
+            albumDisplay.className = ''; // Reset classes
+            albumDisplay.classList.add(`album-${mode}`); // Apply the selected display pattern class
+            console.log(`Applied class: album-${mode}`);  // Log the applied class
+
+            // Manage slideshow functionality based on the display mode
+            if (mode === 'slideshow') {
+                slides = albumDisplay.querySelectorAll('.file-container'); // Get all slides
+                currentSlide = 0; // Reset to first slide
+                showSlide(currentSlide); // Show the first slide
+                controls.style.display = 'block'; // Show controls
+            } else {
+                slides.forEach(slide => {
+                    slide.style.display = 'block'; // Show all slides
+                });
+                controls.style.display = 'none'; // Hide controls
+            }
+        }
+
+        // Function to show a specific slide
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.style.display = (i === index) ? 'block' : 'none'; // Show the current slide, hide others
+            });
+        }
+
+        // Function to go to the next slide
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length; // Increment slide index
+            showSlide(currentSlide); // Show the next slide
+        }
+
+        // Function to go to the previous slide
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length; // Decrement slide index
+            showSlide(currentSlide); // Show the previous slide
+        }
+
+        // Set initial display mode from the select element
+        updateDisplayMode(displayModeSelect.value);
+
+        // Event listener for display mode change
+        displayModeSelect.addEventListener('change', function () {
+            const mode = this.value;
+            updateDisplayMode(mode);
+        });
+
+        // Event listeners for button clicks
+        document.getElementById('nextBtn').addEventListener('click', nextSlide);
+        document.getElementById('prevBtn').addEventListener('click', prevSlide);
+    });
+</script>
+
+{% endblock %}

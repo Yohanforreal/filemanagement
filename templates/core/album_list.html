@@ -1,0 +1,17 @@
+<!-- album_list.html -->
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h2>Your Albums</h2>
+  <ul>
+    {% for album in albums %}
+      <li>
+        <a href="{% url 'album_detail' album.id %}">
+          <strong>{{ album.album_name }}</strong>
+        </a> - {{ album.get_display_pattern_display }}
+        <a href="{% url 'edit_album' album.id %}">Edit</a> |
+        <a href="{% url 'delete_album' album.id %}">Delete</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}

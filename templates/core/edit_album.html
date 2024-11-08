@@ -1,0 +1,12 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h2>Edit Album</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ album_form.as_p }}
+    <h3>Update Media Files</h3>
+    {{ media_form.as_p }}
+    <button type="submit" class="btn btn-primary">Update Album</button>
+  </form>
+{% endblock %}

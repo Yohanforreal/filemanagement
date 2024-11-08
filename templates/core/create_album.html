@@ -1,0 +1,40 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h2>Create Album</h2>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ album_form.as_p }}
+    <h3>Picking Media Files</h3>
+
+    <div>
+      {% for file in media_files_page %}
+        <div>
+          <label>
+            <input type="checkbox" name="media_files" value="{{ file.id }}" 
+                   {% if file.id in previously_selected_files %}checked{% endif %}>
+            {{ file.file_name }}
+          </label>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Hidden input to pass selected media files IDs -->
+    <input type="hidden" name="selected_media_files" value="{{ previously_selected_files|join:',' }}">
+
+    <div>
+      <button type="submit">Save Album</button>
+    </div>
+
+    <div>
+      {% if media_files_page.has_previous %}
+        <a href="?page={{ media_files_page.previous_page_number }}">Previous</a>
+      {% endif %}
+      <span>Page {{ media_files_page.number }} of {{ media_files_page.paginator.num_pages }}</span>
+      {% if media_files_page.has_next %}
+        <a href="?page={{ media_files_page.next_page_number }}">Next</a>
+      {% endif %}
+    </div>
+  </form>
+  
+{% endblock %}
